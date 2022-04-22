@@ -3,11 +3,19 @@ var app=  express()
 var AWS = require('aws-sdk')
 var fs=require("fs")
 
+
 const fileUpload = require('express-fileupload');
 
 AWS.config.update({region: 'ap-southeast-1'})
 
 var sqs =new AWS.SQS()
+
+const s3=new AWS.S3(
+    {
+        accessKeyId: process.env.ACCESS_KEY,
+        secretAccessKey: process.env.SECRET_KEY
+    }
+)
 
 app.use(fileUpload())
 app.use(express.json())
@@ -18,8 +26,23 @@ app.get("/",function(request,response){
 
 app.post("/upload",function(request,response){
     let file=request.files.myfile
-    file.mv("d:/uploads/"+file.name)
-    response.send("File uploaded successfully")
+    const content = Buffer.from(file.data,"binary")
+    const params= {
+        Bucket: 'firstbucket5725',
+        Key: file.name,
+        Body: content
+    }
+
+    s3.upload(params,function(err,data){
+        if(err){
+        console.log(err)
+        response.status(500).send("file not uploaded")
+        }
+        else
+        response.send("File uploaded successfully")
+    })
+
+
 
 })
 
