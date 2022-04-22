@@ -1,15 +1,26 @@
 var express=require("express")
 var app=  express()
 var AWS = require('aws-sdk')
+var fs=require("fs")
+
+const fileUpload = require('express-fileupload');
 
 AWS.config.update({region: 'ap-southeast-1'})
 
 var sqs =new AWS.SQS()
 
+app.use(fileUpload())
 app.use(express.json())
 
 app.get("/",function(request,response){
     response.send("Hello World!!!! node app is running... with changes")
+})
+
+app.post("/upload",function(request,response){
+    let file=request.files.myfile
+    file.mv("d:/uploads/"+file.name)
+    response.send("File uploaded successfully")
+
 })
 
 app.post("/message", function(request,response){
@@ -27,7 +38,7 @@ app.post("/message", function(request,response){
             console.log("Success",data)
             response.send("Message sent successfuly")
         }
-    }).promise()
+    })
   
 })
 
